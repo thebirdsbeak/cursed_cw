@@ -1,7 +1,9 @@
 import curses
 from curses import wrapper
 from random import choice
-
+from tones import SINE_WAVE, SAWTOOTH_WAVE
+from tones.mixer import Mixer
+from playsound import playsound
 
 alphabet = ["A", "B", "C", "D", "E", "F", "G", "H",
             "I", "J", "K", "L", "M", "N", "O", "P",
@@ -71,18 +73,18 @@ def display_text(stdscr, target_text, entered_text):
     score = len(target_text)
     result = len(target_text)
 
-    #!!!! CAN YOU PUT THE LENGTH TEST OR 2 LENGTH TESTS SO IT QUITS IMMEDIATELY?
+    make_beep(target_text, stdscr)
 
     for i, keys in enumerate(entered_text):
-        if i != len(target_text):
+        if i != score:
             correct_keys = target_text[i]
             feedback = curses.color_pair(3)
             if keys.upper() != correct_keys:
                 feedback = curses.color_pair(1)
                 result -= 1
             stdscr.addstr(0, i, keys.upper(), feedback)
-        else:
-            chicken_dinner(stdscr, score, result)
+            if i + 1 == score:
+                chicken_dinner(stdscr, score, result)
 
 
 def chicken_dinner(stdscr, score, result):
@@ -103,6 +105,55 @@ def callsigns():
         suffix += choice(alphabet)
     contact = prefix + suffix
     return contact
+
+
+def make_beep(morse_in, stdscr):
+
+    characters = [
+    ['A', '.-'], ['B', '-...'], ['C', '-.-.'], ['D', '-..'], ['E', '.'],
+    ['F', '..-.'], ['G', '--.'], ['H', '....'], ['I', '..'], ['J', '.---'],
+    ['K', '-.-'], ['L', '.-..'], ['M', '--'], ['N', '-.'], ['O', '---'],
+    ['P', '.--.'], ['Q', '--.-'], ['R', '.-.'], ['S', '...'], ['T', '-'],
+    ['U', '..-'], ['V', '...-'], ['W', '.--'], ['X', '-..-'], ['Y', '-.--'],
+    ['Z', '--..'],
+
+    ['0', '-----'], ['1', '.----'], ['2', '..---'], ['3', '...--'],
+    ['4', '....-'], ['5', '.....'], ['6', '-....'], ['7', '--...'],
+    ['8', '---..'], ['9', '----.'],
+
+    ['period', '.-.-.-'], [',', '--..--'], ['?', '..--..'], ["'", '.----.'],
+    ['!', '-.-.--'], ['slash', '-..-.'], ['(', '-.--.'], [')', '-.--.-'],
+    ['&', '.-...'], [':', '---...'], [';', '-.-.-.'], ['=', '-...-'],
+    ['+', '.-.-.'], ['-', '-....-'], ['_', '..--.-'], ['"', '.-..-.'],
+    ['$', '...-..-'], ['@', '.--.-.']]
+
+    mixer = Mixer(44100, 0.5)
+    mixer.create_track(0, SINE_WAVE, attack=0, decay=0.0)
+    mixer.create_track(1, SAWTOOTH_WAVE, vibrato_frequency=200.0, vibrato_variance=200.0, attack=0.00, decay=0.0)
+
+    for x in morse_in:
+        for char in characters:
+            if x == char[0]:
+                glyph = char[1]
+                for mod in glyph:
+                    if mod == ".":
+                        mixer.add_note(0, note='D', octave=5, duration=0.06)
+                        mixer.add_note(0, note='D', octave=5, duration=0.06, amplitude=0)
+                        mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
+
+                    elif mod == "-":
+                        mixer.add_note(0, note='D', octave=5, duration=0.180)
+                        mixer.add_note(0, note='D', octave=5, duration=0.06, amplitude=0)
+                        mixer.add_note(1, note='E', octave=4, duration=0.24, endnote='E', amplitude=0.2)
+
+        mixer.add_note(0, note='D', octave=5, duration=0.12, amplitude=0)
+        mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
+    mixer.write_wav("soundfile.wav")
+    playsound("soundfile.wav")
+                
+
+    
+
 
 
 def main(stdscr):
