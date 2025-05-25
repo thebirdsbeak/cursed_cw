@@ -48,6 +48,12 @@ def morse_text(stdscr):
     target_text = callsigns()
     entered_text = []
 
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Listening...", curses.color_pair(1))
+    add_ascii(stdscr)
+    stdscr.refresh()
+    make_beep(target_text, stdscr)
+
     while True:
         stdscr.clear()
 
@@ -69,11 +75,11 @@ def morse_text(stdscr):
 
 
 def display_text(stdscr, target_text, entered_text):
-    stdscr.addstr(target_text)
+#    stdscr.addstr(target_text)
     score = len(target_text)
     result = len(target_text)
 
-    make_beep(target_text, stdscr)
+
 
     for i, keys in enumerate(entered_text):
         if i != score:
@@ -84,12 +90,13 @@ def display_text(stdscr, target_text, entered_text):
                 result -= 1
             stdscr.addstr(0, i, keys.upper(), feedback)
             if i + 1 == score:
+                stdscr.addstr(" - ")
+                stdscr.addstr(target_text)
                 chicken_dinner(stdscr, score, result)
 
 
 def chicken_dinner(stdscr, score, result):
-    stdscr.clear()
-    stdscr.addstr(str(result))
+    stdscr.addstr(2, 0,  str(result))
     stdscr.addstr("/")
     stdscr.addstr(str(score))
     stdscr.addstr("\nPress any key to continue...")
