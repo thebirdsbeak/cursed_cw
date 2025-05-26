@@ -4,6 +4,9 @@ from random import choice
 from tones import SINE_WAVE, SAWTOOTH_WAVE
 from tones.mixer import Mixer
 from playsound import playsound
+from words import word_list
+
+# TO DO:
 
 alphabet = ["A", "B", "C", "D", "E", "F", "G", "H",
             "I", "J", "K", "L", "M", "N", "O", "P",
@@ -112,7 +115,7 @@ class QuitCurses(Exception):
     pass
                 
 def chicken_dinner(stdscr, score, result):
-    stdscr.addstr(2, 0, str(result))
+    stdscr.addstr(1, 0, str(result))
     stdscr.addstr("~")
     stdscr.addstr(str(score))
     stdscr.addstr("\nPress C to continue in Callsign mode.")
@@ -174,10 +177,22 @@ def pungroups():
     return groupstr.upper()
 
 def mixgroups():
-    return "MIX"
+    groupstr = ""
+    for x in range(1):
+        for i in range(5):
+            mix = choice("a", "b", "c")
+            if mix == "a":
+                groupstr += choice(alphabet)
+            elif mix == "b":
+                groupstr += choice(numbers)
+            elif mix == "x":
+                groupstr += choice(punctuation)
+        groupstr += " "
+    return groupstr.upper()
 
 def words():
-    return "WORDS"
+    groupstr = word_list()
+    return groupstr.upper()
 
 def make_beep(morse_in, stdscr):
 

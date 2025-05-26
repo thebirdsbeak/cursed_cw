@@ -1,0 +1,7 @@
+from allwords import word_list
+
+lister = word_list()
+
+for i in lister:
+    print(i)
+    
