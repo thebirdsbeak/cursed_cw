@@ -22,10 +22,15 @@ def splashscreen(stdscr):
     stdscr.clear()
     stdscr.addstr(0, 0, "(c) 2025 Craig McIntyre", curses.color_pair(1))
     add_ascii(stdscr)
-    stdscr.addstr("\nCALLSIGN MODE")
-    stdscr.addstr("\nPress any key to begin...")
+    stdscr.addstr("\nWarm up callsign")
+    stdscr.addstr("\nPress any key to begin, or N to toggle noise...")
     stdscr.refresh()
-    key = stdscr.getkey()
+    startkey = stdscr.getkey()
+    if startkey.upper() == "N":
+        noise = True
+    else:
+        noise = False
+    return noise
 
 
 def add_ascii(stdscr, filename="image.txt"):
@@ -46,7 +51,7 @@ def add_ascii(stdscr, filename="image.txt"):
         stdscr.addstr(y+2, 0, line[:max_x-1])
 
 
-def morse_text(stdscr, mode="call"):
+def morse_text(stdscr, noise, mode="call"):
 
     if mode == "call":
         target_text = callsigns()
@@ -69,12 +74,12 @@ def morse_text(stdscr, mode="call"):
     stdscr.addstr(0, 0, "Listening...", curses.color_pair(1))
     add_ascii(stdscr)
     stdscr.refresh()
-    make_beep(target_text, stdscr)
+    make_beep(target_text, stdscr, noise)
 
     try:
         while True:
             stdscr.clear()
-            display_text(stdscr, target_text, entered_text)
+            display_text(stdscr, target_text, entered_text, noise)
             stdscr.refresh()
             key = stdscr.getkey()
             try:
@@ -91,7 +96,7 @@ def morse_text(stdscr, mode="call"):
         pass
 
 
-def display_text(stdscr, target_text, entered_text):
+def display_text(stdscr, target_text, entered_text, noise):
     # stdscr.addstr(target_text)
 
     score = len(target_text)
@@ -108,19 +113,19 @@ def display_text(stdscr, target_text, entered_text):
             if i + 1 == score:
                 stdscr.addstr(" - ")
                 stdscr.addstr(target_text)
-                chicken_dinner(stdscr, score, result)
+                chicken_dinner(stdscr, score, result, noise)
 
 
 class QuitCurses(Exception):
     pass
                 
-def chicken_dinner(stdscr, score, result):
+def chicken_dinner(stdscr, score, result, noise):
     stdscr.addstr(1, 0, str(result))
     stdscr.addstr("~")
     stdscr.addstr(str(score))
     stdscr.addstr("\nPress C to continue in Callsign mode.")
     stdscr.addstr("\nPress A for alphabet codegroups.")
-    stdscr.addstr("\nPress N for number codegroups.")
+    stdscr.addstr("\nPress D for digit codegroups.")
     stdscr.addstr("\nPress M for mixed codegroups.")
     stdscr.addstr("\nPress P for punctuation codegroups.")
     stdscr.addstr("\nPress W for  words.")
@@ -129,17 +134,17 @@ def chicken_dinner(stdscr, score, result):
 
     mekey = stdscr.getkey()
     if mekey.upper() == 'C':
-        morse_text(stdscr, "call")
+        morse_text(stdscr, noise, "call")
     elif mekey.upper() == 'A':
-        morse_text(stdscr, "algroups")
-    elif mekey.upper() == 'N':
-        morse_text(stdscr, "numgroups")
+        morse_text(stdscr, noise, "algroups")
+    elif mekey.upper() == 'D':
+        morse_text(stdscr, noise, "numgroups")
     elif mekey.upper() == 'M':
-        morse_text(stdscr, "mixgroups")
+        morse_text(stdscr, noise, "mixgroups")
     elif mekey.upper() == 'P':
-        morse_text(stdscr, "pungroups")
+        morse_text(stdscr, noise, "pungroups")
     elif mekey.upper() == 'W':
-        morse_text(stdscr, "words")        
+        morse_text(stdscr, noise, "words")        
     elif mekey.upper() == 'Q':
         raise QuitCurses
 
@@ -194,7 +199,7 @@ def words():
     groupstr = word_list()
     return groupstr.upper()
 
-def make_beep(morse_in, stdscr):
+def make_beep(morse_in, stdscr, noise):
 
     characters = [
     ['A', '.-'], ['B', '-...'], ['C', '-.-.'], ['D', '-..'], ['E', '.'],
@@ -226,15 +231,18 @@ def make_beep(morse_in, stdscr):
                     if mod == ".":
                         mixer.add_note(0, note='D', octave=5, duration=0.06)
                         mixer.add_note(0, note='D', octave=5, duration=0.06, amplitude=0)
-                        mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
+                        if noise == True:
+                            mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
 
                     elif mod == "-":
                         mixer.add_note(0, note='D', octave=5, duration=0.180)
                         mixer.add_note(0, note='D', octave=5, duration=0.06, amplitude=0)
-                        mixer.add_note(1, note='E', octave=4, duration=0.24, endnote='E', amplitude=0.2)
+                        if noise == True:
+                            mixer.add_note(1, note='E', octave=4, duration=0.24, endnote='E', amplitude=0.2)
 
         mixer.add_note(0, note='D', octave=5, duration=0.12, amplitude=0)
-        mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
+        if noise == True:
+            mixer.add_note(1, note='E', octave=4, duration=0.12, endnote='E', amplitude=0.2)
     mixer.write_wav("soundfile.wav")
     playsound("soundfile.wav")
                 
@@ -244,13 +252,14 @@ def make_beep(morse_in, stdscr):
 
 
 def main(stdscr):
+    noise = False
     stdscr.clear()
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    splashscreen(stdscr)
+    norm  = splashscreen(stdscr)
     stdscr.clear()
 
-    morse_text(stdscr)
+    morse_text(stdscr, norm)
 
 wrapper(main)
