@@ -23,7 +23,6 @@ def splashscreen(stdscr):
     stdscr.addstr("\nPress any key to begin...")
     stdscr.refresh()
     key = stdscr.getkey()
-    return
 
 
 def add_ascii(stdscr, filename="image.txt"):
@@ -44,8 +43,23 @@ def add_ascii(stdscr, filename="image.txt"):
         stdscr.addstr(y+2, 0, line[:max_x-1])
 
 
-def morse_text(stdscr):
-    target_text = callsigns()
+def morse_text(stdscr, mode="call"):
+
+    if mode == "call":
+        target_text = callsigns()
+    elif mode == "algroups":
+        target_text = codegroups()
+    elif mode == "numgroups":
+        target_text = numgroups()
+    elif mode == "mixgroups":
+        target_text = mixgroups()
+    elif mode == "pungroups":
+        target_text = pungroups()
+    elif mode == "words":
+        target_text = words()
+    else:
+        target_text = "ELMER"
+        
     entered_text = []
 
     stdscr.clear()
@@ -54,32 +68,31 @@ def morse_text(stdscr):
     stdscr.refresh()
     make_beep(target_text, stdscr)
 
-    while True:
-        stdscr.clear()
-
-        display_text(stdscr, target_text, entered_text)
-
-        stdscr.refresh()
-
-        key = stdscr.getkey()
-        try:
-            if ord(key) == 27:
-                break
-        except TypeError:
-            pass
-        if key in ("KEY_BACKSPACE", "\b", "\x7f"):
-            if len(entered_text) > 0:
-                entered_text.pop()
-        else:
-            entered_text.append(key)
+    try:
+        while True:
+            stdscr.clear()
+            display_text(stdscr, target_text, entered_text)
+            stdscr.refresh()
+            key = stdscr.getkey()
+            try:
+                if ord(key) == 27:
+                    break
+            except TypeError:
+                pass
+            if key in ("KEY_BACKSPACE", "\b", "\x7f"):
+                if len(entered_text) > 0:
+                    entered_text.pop()
+            else:
+                entered_text.append(key)
+    except QuitCurses:
+        pass
 
 
 def display_text(stdscr, target_text, entered_text):
-#    stdscr.addstr(target_text)
+    # stdscr.addstr(target_text)
+
     score = len(target_text)
     result = len(target_text)
-
-
 
     for i, keys in enumerate(entered_text):
         if i != score:
@@ -95,16 +108,39 @@ def display_text(stdscr, target_text, entered_text):
                 chicken_dinner(stdscr, score, result)
 
 
+class QuitCurses(Exception):
+    pass
+                
 def chicken_dinner(stdscr, score, result):
-    stdscr.addstr(2, 0,  str(result))
-    stdscr.addstr("/")
+    stdscr.addstr(2, 0, str(result))
+    stdscr.addstr("~")
     stdscr.addstr(str(score))
-    stdscr.addstr("\nPress any key to continue...")
+    stdscr.addstr("\nPress C to continue in Callsign mode.")
+    stdscr.addstr("\nPress A for alphabet codegroups.")
+    stdscr.addstr("\nPress N for number codegroups.")
+    stdscr.addstr("\nPress M for mixed codegroups.")
+    stdscr.addstr("\nPress P for punctuation codegroups.")
+    stdscr.addstr("\nPress W for  words.")
+    stdscr.addstr("\nPress ESC to quit.")
     stdscr.refresh()
-    stdscr.getkey()
-    morse_text(stdscr)
-    
 
+    mekey = stdscr.getkey()
+    if mekey.upper() == 'C':
+        morse_text(stdscr, "call")
+    elif mekey.upper() == 'A':
+        morse_text(stdscr, "algroups")
+    elif mekey.upper() == 'N':
+        morse_text(stdscr, "numgroups")
+    elif mekey.upper() == 'M':
+        morse_text(stdscr, "mixgroups")
+    elif mekey.upper() == 'P':
+        morse_text(stdscr, "pungroups")
+    elif mekey.upper() == 'W':
+        morse_text(stdscr, "words")        
+    elif mekey.upper() == 'Q':
+        raise QuitCurses
+
+    
 def callsigns():
     prefix = choice(prefixes)
     suffix = ""
@@ -113,6 +149,35 @@ def callsigns():
     contact = prefix + suffix
     return contact
 
+def codegroups():
+    groupstr = ""
+    for x in range(1):
+        for i in range(5):
+            groupstr += choice(alphabet)
+        groupstr += " "
+    return groupstr.upper()
+
+def numgroups():
+    groupstr = ""
+    for x in range(1):
+        for i in range(5):
+            groupstr += choice(numbers)
+        groupstr += " "
+    return groupstr.upper()
+
+def pungroups():
+    groupstr = ""
+    for x in range(1):
+        for i in range(5):
+            groupstr += choice(punctuation)
+        groupstr += " "
+    return groupstr.upper()
+
+def mixgroups():
+    return "MIX"
+
+def words():
+    return "WORDS"
 
 def make_beep(morse_in, stdscr):
 
