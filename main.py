@@ -120,16 +120,24 @@ class QuitCurses(Exception):
     pass
                 
 def chicken_dinner(stdscr, score, result, noise):
+
+    #!!! Add tests and metrics for tracking repeated errors
     stdscr.addstr(1, 0, str(result))
-    stdscr.addstr("~")
+    stdscr.addstr(" out of ")
     stdscr.addstr(str(score))
-    stdscr.addstr("\nPress C to continue in Callsign mode.")
-    stdscr.addstr("\nPress A for alphabet codegroups.")
-    stdscr.addstr("\nPress D for digit codegroups.")
-    stdscr.addstr("\nPress M for mixed codegroups.")
-    stdscr.addstr("\nPress P for punctuation codegroups.")
-    stdscr.addstr("\nPress W for  words.")
-    stdscr.addstr("\nPress ESC to quit.")
+    if score == result:
+        stdscr.addstr("... OK Samuel calm down.")
+    elif result == 0:
+        stdscr.addstr(" lol u suk")
+
+    stdscr.addstr("\nPress:")
+    stdscr.addstr("\n       C for Callsign mode.")
+    stdscr.addstr("\n       A for alphabet codegroups.")
+    stdscr.addstr("\n       D for digit codegroups.")
+    stdscr.addstr("\n       M for mixed codegroups.")
+    stdscr.addstr("\n       P for punctuation codegroups.")
+    stdscr.addstr("\n       W for words.")
+    stdscr.addstr("\n       ESC to quit.")
     stdscr.refresh()
 
     mekey = stdscr.getkey()
@@ -163,22 +171,22 @@ def codegroups():
         for i in range(5):
             groupstr += choice(alphabet)
         groupstr += " "
-    return groupstr.upper()
+    return groupstr.upper().strip()
 
 def numgroups():
     groupstr = ""
     for x in range(1):
         for i in range(5):
             groupstr += choice(numbers)
-        groupstr += " "
-    return groupstr.upper()
+        groupstr += " ".strip()
+    return groupstr.upper().strip()
 
 def pungroups():
     groupstr = ""
     for x in range(1):
         for i in range(5):
             groupstr += choice(punctuation)
-        groupstr += " "
+        groupstr += " ".strip()
     return groupstr.upper()
 
 def mixgroups():
@@ -192,7 +200,7 @@ def mixgroups():
                 groupstr += choice(numbers)
             elif mix == "x":
                 groupstr += choice(punctuation)
-        groupstr += " "
+        groupstr += " ".strip()
     return groupstr.upper()
 
 def words():
